@@ -1,0 +1,10 @@
+# Contains Love2D bins, grab a copy from https://love2d.org/
+bin
+# oopsise
+release
+# You need to get the font files yourself if you want to build this
+src/fonts/*
+# Debug configurations
+debug_configurationmode.bat
+debug_normalmode.bat
+debug_previemode.bat
