@@ -9,3 +9,5 @@ Run makewin64.bat
 
 This screensaver aims to recreate the "OVKLToolSys" screen seen in PAYDAY 2 as a windows screensaver.
 This program is a fan program and not affiliated with Starbreeze AB or OVERKILL Software.
+
+I am currently not actively developing this software
