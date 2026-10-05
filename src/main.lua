@@ -102,6 +102,11 @@ love.window.setFullscreen(true, "exclusive")
 shouldcloseoninput = true
 end]]
 
+--Attempt to fix a rendering bug on android
+if love.system.getOS() ~= "Android" then
+love.window.setFullscreen(true, "exclusive")
+end
+
 if widescreensupport == true then
 love.window.setMode(1280,720)
 else
