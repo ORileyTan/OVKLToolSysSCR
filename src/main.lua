@@ -1,14 +1,14 @@
 --config
-execver = "00.00.03 +A" --version number
+execver = "00.00.03 +B/GENERAL PURPOSE" --version number
 frameno = 0
 debugdelta = 0
 debugfps = 0
-framelimiterval = 23.976
+framelimiterval = 59.94
 closeoninput = false
 shouldcloseoninput = false
 optionsmode = false
-debugmode = false
-widescreensupport = false
+debugmode = true
+widescreensupport = true
 
 --Implimentation of table.find() from LUAU because it's usefull n' shit
 function tablefind(table,needle)
@@ -34,40 +34,44 @@ end
 function love.load(args)
 love.window.setTitle("OVKL ToolSys: " .. execver)
 love.window.setVSync(0)
-love.window.setDisplaySleepEnabled(true)
-if love.system.getOS() ~= "Windows" then
-success = love.window.showMessageBox("Unsuported operating system,", "This program is designed only for windows", "info", false )
-love.event.quit()
-end
-love.mouse.setVisible(false)
+love.window.setDisplaySleepEnabled(false)
+--if love.system.getOS() ~= "Windows" then
+--success = love.window.showMessageBox("Unsuported operating system,", "This program is designed only for windows", "info", false )
+--love.event.quit()
+--end
+--love.mouse.setVisible(false)
 
 for i,v in pairs(args) do
 print(v)
 end
 
 --Load config data used for the screensaver
-savedata = love.filesystem.read("targettime.txt")
+--Save data patched out since this is meant to run on an android tablet as an experiment
+--savedata = love.filesystem.read("targettime.txt")
 
 if not savedata then
 print("Save data missing, generating")
-love.filesystem.write("targettime.txt","120")
+--love.filesystem.write("targettime.txt","120")
 
-savedata = love.filesystem.read("targettime.txt")
+savedata = 120
 end
 
-savedata2 = love.filesystem.read("screenmode.txt")
+--savedata2 = love.filesystem.read("screenmode.txt")
 
 if not savedata2 then
 print("Save data missing, generating")
-love.filesystem.write("screenmode.txt","1")
+--love.filesystem.write("screenmode.txt","1")
 
-savedata2 = love.filesystem.read("screenmode.txt")
+--savedata2 = love.filesystem.read("screenmode.txt")
 end
 
-if savedata2 == "2" then
-widescreensupport = true
-end
+--My tablet is widescreen only, this is patched out for this reason
+--if savedata2 == "2" then
+--widescreensupport = true
+--end
 
+--Control panel thingies that isn't needed
+--[[
 if tablefind(args,"/c") or tablefindwildcard(args,"/c:*") then --Configuration mode, called when you press the "configure" button from either the context menu or the control panel
 love.window.setMode(800,600,{borderless=true})
 optionsmode = true
@@ -77,6 +81,8 @@ if tablefind(args,"/p") then --Love2D doesn't properly support the shit needed f
 if debugmode == false then
 love.event.quit()
 end
+
+
 if widescreensupport == true then
 love.window.setMode(1280,720,{borderless=true})
 else
@@ -94,6 +100,12 @@ end
 
 love.window.setFullscreen(true, "exclusive")
 shouldcloseoninput = true
+end]]
+
+if widescreensupport == true then
+love.window.setMode(1280,720)
+else
+love.window.setMode(800,600)
 end
 
 targettime = tonumber(savedata)
@@ -248,9 +260,9 @@ end
 
 if selection == 4 then
 if savedata2 == "1" then
-love.filesystem.write("screenmode.txt","2")
+--love.filesystem.write("screenmode.txt","2")
 else
-love.filesystem.write("screenmode.txt","1")
+--love.filesystem.write("screenmode.txt","1")
 end
 end
 
@@ -264,7 +276,7 @@ end
 
 if screenid == 2 then
 print(tonumber(textinput))
-love.filesystem.write("targettime.txt",tonumber(textinput) or 120) --Defaults to 120 if text is inputed instead of numbers
+--love.filesystem.write("targettime.txt",tonumber(textinput) or 120) --Defaults to 120 if text is inputed instead of numbers
 
 clearscreen()
 mainscreen()
@@ -317,20 +329,22 @@ layer0[4][3] = barmaxsize - (timeremain / targettime) * barmaxsize
 
 layer1[4][1] = timeremain .. " SECONDS"
 
+--Patch since this build runs at 60fps
 if textfade == true then
-layer1[2][9] = layer1[2][9] - 20
+layer1[2][9] = layer1[2][9] - 10
 
 if layer1[2][9] < 100 then
 textfade = false
 end
 else
-layer1[2][9] = layer1[2][9] + 20
+layer1[2][9] = layer1[2][9] + 10
 if layer1[2][9] > 254 then
 textfade = true
 end
 end
 
-if bgfade == true then
+--Not needed
+--[[if bgfade == true then
 layer0[1][5] = layer0[1][5] - 0.1
 layer0[1][6] = layer0[1][6] - 0.1
 layer0[1][7] = layer0[1][7] - 0.1
@@ -344,7 +358,7 @@ layer0[1][7] = layer0[1][7] + 0.1
 if layer0[1][5] > 50 then
 bgfade = true
 end
-end
+end]]
 else
 --Options mode logic
 
