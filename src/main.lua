@@ -1,5 +1,5 @@
 --config
-execver = "00.00.03 +B/GENERAL PURPOSE" --version number
+execver = "00.00.04/GENERAL PURPOSE" --version number
 frameno = 0
 debugdelta = 0
 debugfps = 0
@@ -34,7 +34,7 @@ end
 function love.load(args)
 love.window.setTitle("OVKL ToolSys: " .. execver)
 love.window.setVSync(0)
-love.window.setDisplaySleepEnabled(false)
+love.window.setDisplaySleepEnabled(true)
 --if love.system.getOS() ~= "Windows" then
 --success = love.window.showMessageBox("Unsuported operating system,", "This program is designed only for windows", "info", false )
 --love.event.quit()
@@ -102,16 +102,13 @@ love.window.setFullscreen(true, "exclusive")
 shouldcloseoninput = true
 end]]
 
---Attempt to fix a rendering bug on android
-if love.system.getOS() ~= "Android" then
-love.window.setFullscreen(true, "exclusive")
+love.window.setMode(1280,720,{resizable=true,minwidth=1280,minheight=720})
+
+--Android viewport size fix
+if love.system.getOS() == "Android" or love.system.getOS() == "iOS" then
+love.window.setMode(0,0)
 end
 
-if widescreensupport == true then
-love.window.setMode(1280,720)
-else
-love.window.setMode(800,600)
-end
 
 targettime = tonumber(savedata)
 starttime = os.time()
@@ -391,6 +388,7 @@ end
 
 --Rendersystem
 function love.draw()
+graphicsscale = (love.graphics.getHeight() / 720) --For scalable UI
 
 --[[
 Layer0 (BG Layer)
@@ -405,7 +403,7 @@ print(v)
 end]]
 
 love.graphics.setColor(love.math.colorFromBytes(v[5],v[6],v[7]))
-love.graphics.rectangle("fill",v[1],v[2],v[3],v[4])
+love.graphics.rectangle("fill",v[1]*graphicsscale,v[2]*graphicsscale,v[3]*graphicsscale,v[4]*graphicsscale)
 end
 --[[
 Layer1 (text layer)
@@ -417,7 +415,7 @@ text,x,y,scale,r,g,b,font,transparency
 for i,v in pairs(layer1) do
 love.graphics.setFont(v[8])
 love.graphics.setColor(love.math.colorFromBytes(v[5],v[6],v[7],v[9]))
-love.graphics.print(v[1],v[2],v[3],0,v[4],v[4])
+love.graphics.print(v[1],v[2]*graphicsscale,v[3]*graphicsscale,0,v[4]*graphicsscale,v[4]*graphicsscale)
 end
 
 
@@ -427,6 +425,7 @@ love.graphics.setFont(sysfont)
 love.graphics.setColor(1,0,0)
 love.graphics.print("VER: " .. execver) --Version no
 love.graphics.print("FPS: " .. math.floor(debugfps) .. "/" .. framelimiterval .. " FRAME: " .. frameno .. " DELTA: " .. debugdelta,0,16) --FPS counter n shit
+love.graphics.print("Screen resolution: " .. love.graphics.getWidth() .. "x" .. love.graphics.getHeight() .. " Scale: " .. graphicsscale,0,32) --Shows current VRES
 end
 --framerate limiter
    local cur_time = love.timer.getTime()

@@ -1,5 +1,5 @@
 function love.conf(t)
-t.identity = "OVKLToolSysScreensaver"
+t.identity = "OVKLToolSysScreensaver_general_purpose"
 
     t.modules.audio = true             -- Enable the audio module (boolean)
     t.modules.data = true               -- Enable the data module (boolean)
