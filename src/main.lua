@@ -10,6 +10,11 @@ optionsmode = false
 debugmode = true
 widescreensupport = true
 
+--save data values
+savedataheader = "AA"
+savedataformat = 1
+savedata_defaulttime = 120
+
 --Implimentation of table.find() from LUAU because it's usefull n' shit
 function tablefind(table,needle)
 for i,v in pairs(table) do
@@ -46,29 +51,27 @@ print(v)
 end
 
 --Load config data used for the screensaver
---Save data patched out since this is meant to run on an android tablet as an experiment
---savedata = love.filesystem.read("targettime.txt")
-
-if not savedata then
-print("Save data missing, generating")
---love.filesystem.write("targettime.txt","120")
-
-savedata = 120
+print("Initialise save data")
+if not love.filesystem.getInfo("config.bin") then
+	print("Cannot intialise data, generating")
+	local str = savedataheader .. love.data.pack("string","B",savedataformat) .. love.data.pack("string","B",savedata_defaulttime)
+--	love.filesystem.write("config.bin",str)
+end
+print("Reading")
+--datadump = love.filesystem.read("config.bin")
+datadump = savedataheader .. love.data.pack("string","B",savedataformat) .. love.data.pack("string","B",savedata_defaulttime)
+print(datadump)
+print("Verifying header")
+if string.sub(datadump,1,2) ~= savedataheader then
+love.window.showMessageBox("ERROR", "INVALID HEADER", "error", false )
+love.event.quit()
 end
 
---savedata2 = love.filesystem.read("screenmode.txt")
+print("Getting saved time")
+local str = string.sub(datadump,4,4)
+targettime = love.data.unpack("B",str)
+str = nil
 
-if not savedata2 then
-print("Save data missing, generating")
---love.filesystem.write("screenmode.txt","1")
-
---savedata2 = love.filesystem.read("screenmode.txt")
-end
-
---My tablet is widescreen only, this is patched out for this reason
---if savedata2 == "2" then
---widescreensupport = true
---end
 
 --Control panel thingies that isn't needed
 --[[
@@ -110,7 +113,6 @@ love.window.setMode(0,0)
 end
 
 
-targettime = tonumber(savedata)
 starttime = os.time()
 
 --Render systemini
@@ -126,6 +128,9 @@ if optionsmode == false then
 
 --Progs asset
 
+--Looping audio
+audloop = love.audio.newSource("aud/bgsnd.mp3","static")
+audloop:setLooping(true)
 
 --Very weird widescreen support implementation
 if widescreensupport == true then
@@ -167,6 +172,9 @@ end
 
 textfade = true
 bgfade = true
+
+--Plays audio
+love.audio.play(audloop)
 
 else
 print("LOADING OPTIONS")
@@ -322,6 +330,7 @@ end
 
 timeremain = targettime - (os.time() - starttime)
 if timeremain < 0 then
+love.audio.stop(audloop) --Ends audio looping
 layer1[2][1] = "COMPLETED"
 layer1[2][2] = 285
 timeremain = 0
