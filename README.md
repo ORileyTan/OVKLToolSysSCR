@@ -10,3 +10,11 @@ Run make.bat
 
 This screensaver aims to recreate the "OVKLToolSys" screen seen in PAYDAY 2 as a windows screensaver.
 This program is a fan program and not affiliated with Starbreeze AB or OVERKILL Software.
+
+-- Minimum system requirements
+
+OS: Windows Vista x64 or newer 
+CPU: 1GHz or better 
+GPU: 600MHz GPU with OpenGL ES 2.0 support 
+RAM: 128MB or more 
+STORAGE: 10MB or more
