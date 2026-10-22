@@ -142,8 +142,8 @@ renderfontlarge = love.graphics.newFont("fonts/DINEngschrift-Regular.ttf",64)
 table.insert(layer0,{0,0,1280,720,57,99,141}) --Blue BG
 table.insert(layer0,{0,0,1280,32,182,182,182}) --White bar
 table.insert(layer0,{25,330,1230,64,43,82,121}) --progressbar back
-table.insert(layer0,{30,335,1225,54,198,177,35}) --progressbar
-barmaxsize = 1230
+table.insert(layer0,{30,335,1220,54,198,177,35}) --progressbar
+barmaxsize = 1220
 
 --Layer1 assets
 table.insert(layer1,{"OVKL ToolSys 2.0",3,3,1,0,0,0,renderfont,255})
@@ -332,7 +332,11 @@ timeremain = targettime - (os.time() - starttime)
 if timeremain < 0 then
 love.audio.stop(audloop) --Ends audio looping
 layer1[2][1] = "COMPLETED"
+if widescreensupport == true then
+layer1[2][2] = 520
+else
 layer1[2][2] = 285
+end
 timeremain = 0
 end
 
