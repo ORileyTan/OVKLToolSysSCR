@@ -1,5 +1,5 @@
 --config
-execver = "00.00.04/GENERAL PURPOSE" --version number
+execver = "00.00.05/GENERAL PURPOSE" --version number
 frameno = 0
 debugdelta = 0
 debugfps = 0
@@ -8,12 +8,13 @@ closeoninput = false
 shouldcloseoninput = false
 optionsmode = false
 debugmode = true
-widescreensupport = true
+widescreensupport = false
 
---save data values
+--default save data values
 savedataheader = "AA"
 savedataformat = 1
 savedata_defaulttime = 120
+savedata_widescreensupport = 1
 
 --Implimentation of table.find() from LUAU because it's usefull n' shit
 function tablefind(table,needle)
@@ -54,12 +55,15 @@ end
 print("Initialise save data")
 if not love.filesystem.getInfo("config.bin") then
 	print("Cannot intialise data, generating")
-	local str = savedataheader .. love.data.pack("string","B",savedataformat) .. love.data.pack("string","B",savedata_defaulttime)
---	love.filesystem.write("config.bin",str)
+	local str = savedataheader .. love.data.pack("string","B",savedataformat) .. love.data.pack("string","B",savedata_defaulttime) .. love.data.pack("string","B",savedata_widescreensupport)
+	love.filesystem.write("config.bin",str)
 end
 print("Reading")
---datadump = love.filesystem.read("config.bin")
-datadump = savedataheader .. love.data.pack("string","B",savedataformat) .. love.data.pack("string","B",savedata_defaulttime)
+datadump = love.filesystem.read("config.bin")
+
+--debugging patch
+--datadump = savedataheader .. love.data.pack("string","B",savedataformat) .. love.data.pack("string","B",savedata_defaulttime)
+
 print(datadump)
 print("Verifying header")
 if string.sub(datadump,1,2) ~= savedataheader then
@@ -72,14 +76,33 @@ local str = string.sub(datadump,4,4)
 targettime = love.data.unpack("B",str)
 str = nil
 
+print("Reading screen mode")
+local str = string.sub(datadump,5,5)
+ramconf_widescreensupport = love.data.unpack("B",str)
+if ramconf_widescreensupport == 1 then
+widescreensupport = true
+else
+widescreensupport = false
+end
+str = nil
+
 
 --Control panel thingies that isn't needed
---[[
+
+if widescreensupport == true then
+love.window.setMode(1280,720,{resizable=true,minwidth=1280,minheight=720})
+screenresh = 720
+else
+love.window.setMode(800,600,{resizable=true,minwidth=800,minheight=600})
+screenresh = 600
+end
+
 if tablefind(args,"/c") or tablefindwildcard(args,"/c:*") then --Configuration mode, called when you press the "configure" button from either the context menu or the control panel
 love.window.setMode(800,600,{borderless=true})
 optionsmode = true
+screenresh = 600
 end
-
+--[[
 if tablefind(args,"/p") then --Love2D doesn't properly support the shit needed for a functioning preview screen within the control panel so, you'll get this instead
 if debugmode == false then
 love.event.quit()
@@ -105,7 +128,7 @@ love.window.setFullscreen(true, "exclusive")
 shouldcloseoninput = true
 end]]
 
-love.window.setMode(1280,720,{resizable=true,minwidth=1280,minheight=720})
+
 
 --Android viewport size fix
 if love.system.getOS() == "Android" or love.system.getOS() == "iOS" then
@@ -192,10 +215,21 @@ end
 
 function mainscreen() --main options screen
 print("loading mainscreen")
+
+--Handles HD or SD text
+local mainscreen_screenmodetxt = ""
+if ramconf_widescreensupport == 1 then
+mainscreen_screenmodetxt = "HD"
+else
+mainscreen_screenmodetxt = "SD"
+end
+
+
+
 table.insert(layer1,{"TARGET TIME",3,64,1,255,255,255,sysfont,255})
 table.insert(layer1,{"IN PROGRESS TEXT",3,80,1,255,255,255,sysfont,255})
 table.insert(layer1,{"SOUND",3,96,1,255,255,255,sysfont,255})
-table.insert(layer1,{"DISPLAY",3,112,1,255,255,255,sysfont,255})
+table.insert(layer1,{"DISPLAY MODE: " .. mainscreen_screenmodetxt,3,112,1,255,255,255,sysfont,255})
 table.insert(layer1,{"EXIT",3,144,1,255,255,255,sysfont,255})
 
 table.insert(layer1,{"UP & DOWN ARROW: MOVE CURSOR    ENTER SW: ENTER",3,176,1,255,255,255,sysfont,255})
@@ -269,24 +303,37 @@ ttscreen()
 end
 
 if selection == 4 then
-if savedata2 == "1" then
---love.filesystem.write("screenmode.txt","2")
+if ramconf_widescreensupport == 1 then
+ramconf_widescreensupport = 0
 else
---love.filesystem.write("screenmode.txt","1")
+ramconf_widescreensupport = 1
 end
+clearscreen()
+mainscreen()
 end
 
 if selection == 5 then --Exit out of options menu
+print("Writing")
+clearscreen()
+--Save the new configs
+local str = savedataheader .. love.data.pack("string","B",savedataformat) .. love.data.pack("string","B",targettime) .. love.data.pack("string","B",ramconf_widescreensupport)
+love.filesystem.write("config.bin",str)
 love.event.quit()
 end
+
 selection = 1 --Resets cursor
 return
 end
 
 
-if screenid == 2 then
-print(tonumber(textinput))
---love.filesystem.write("targettime.txt",tonumber(textinput) or 120) --Defaults to 120 if text is inputed instead of numbers
+if screenid == 2 then --Handles setting time remain
+local timetosav = tonumber(textinput) or 120
+
+if timetosav > 154 then --Limitation because time remains is saved as a 8 bit unsigned integer
+timetosav = 255
+end
+
+targettime = timetosav
 
 clearscreen()
 mainscreen()
@@ -401,7 +448,7 @@ end
 
 --Rendersystem
 function love.draw()
-graphicsscale = (love.graphics.getHeight() / 720) --For scalable UI
+graphicsscale = (love.graphics.getHeight() / screenresh) --For scalable UI
 
 --[[
 Layer0 (BG Layer)
